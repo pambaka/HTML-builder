@@ -3,31 +3,37 @@ const path = require('path');
 
 const projectFolder = 'project-dist';
 
-async function myFunc() {
+buildPage();
+
+async function buildPage() {
   const existsPromise = new Promise ((resolve, reject) => {
-    fs.exists(path.join(__dirname, projectFolder), (exists) => {
-      // console.log('in promise');
+    fs.access(path.join(__dirname, projectFolder), (err) => {
+      const exists = !Boolean(err);
+
       resolve(exists);
     });
-    console.log('after resolve')
   })
   const exists = await existsPromise;
+  console.log('Directory exists:', exists);
 
   const dirPromise = new Promise ((resolve, reject) => {
-    console.log('in promise', exists)
     if (!exists) {
       fs.mkdir(path.join(__dirname, projectFolder), (err, data) => {});
-      resolve('folder created');
+
+      resolve(`${projectFolder} directory is created`);
     } else {
-      console.log('in exists');
       async function deleteFiles() {
         const entries = await fs.promises.readdir(path.join(__dirname, projectFolder));
-        console.log(entries)
+
+        console.log(`Files in directory: ${entries}`);
+
         for (const entry of entries) {
-          await fs.promises.rm(path.join(__dirname, projectFolder, entry));
-          console.log('unlink', entry);
+          await fs.promises.rm(path.join(__dirname, projectFolder, entry), {recursive: true});
+
+          console.log(`Delete ${entry}`);
         }
-        resolve('old files deleted');
+
+        resolve('Old files deleted');
       }
 
       deleteFiles();
@@ -38,23 +44,9 @@ async function myFunc() {
  
   createHtmlFile();
   createStyleFile();
-}
 
-myFunc();
-
-// copy assets
-function copyFiles(srcFolder, destFolder) {
-  fs.readdir(path.join(__dirname, 'files'), (err, entries) => {
-    entries.forEach((entry) => {
-      fs.copyFile(
-        path.join(srcFolder, entry),
-        path.join(destFolder, entry),
-        () => {
-          // console.log('copied');
-        },
-      );
-    });
-  });
+  const assetsFolder = 'assets';
+  copyFiles(path.join(__dirname, assetsFolder), path.join(__dirname, projectFolder, assetsFolder));
 }
 
 function createHtmlFile() {
@@ -64,17 +56,15 @@ function createHtmlFile() {
   const componenetsFolder = 'components';
   
   readStream.on('data', (data) => {
-    console.log('writing index.html');
+    console.log('Writing index.html');
     
     const tags = [];
 
     fs.readdir(path.join(__dirname, componenetsFolder), (err, entries) => {
       entries.forEach(entry => {
        
-        tags.push(entry);
-        
+        tags.push(entry);  
       });
-      // console.log(tags);
 
       for (let i = 0; i < tags.length; i += 1) {
         const str = `{{${tags[i].replace('.html', '')}}}`;
@@ -94,7 +84,8 @@ function createHtmlFile() {
 }
   
 function createStyleFile() {
-  console.log('writing style.css');
+  console.log('Bundling style.css');
+
   const stylesFolder = 'styles';
   // const projectFolder = 'project-dist';
   const bundleCssFile = 'style.css';
@@ -130,4 +121,24 @@ function createStyleFile() {
         }
       });
     });
+}
+  
+function copyFiles(srcFolder, destFolder) {
+  console.log(`Copying ${destFolder}`);
+  
+  fs.promises.mkdir(destFolder).then(() => {
+    fs.readdir(srcFolder, {withFileTypes: true}, (err, entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isFile()) {
+          copyFiles(path.join(srcFolder, entry.name), path.join(destFolder, entry.name));
+        } else {
+          fs.copyFile(
+            path.join(srcFolder, entry.name),
+            path.join(destFolder, entry.name),
+            () => {},
+          );
+        }
+      });
+    });
+  });
 }
