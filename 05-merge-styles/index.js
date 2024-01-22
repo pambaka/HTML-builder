@@ -5,9 +5,10 @@ const stylesFolder = 'styles';
 const projectFolder = 'project-dist';
 const bundleCssFile = 'bundle.css';
 
-fs.promises
-  .readdir(path.join(__dirname, stylesFolder), { withFileTypes: true })
-  .then((entries) => {
+fs.readdir(
+  path.join(__dirname, stylesFolder),
+  { withFileTypes: true },
+  (err, entries) => {
     const stylesArr = [];
 
     entries.forEach((entry) => {
@@ -16,7 +17,7 @@ fs.promises
       if (entry.isFile() && path.extname(filePath) === '.css') {
         const readStream = fs.createReadStream(
           path.join(__dirname, stylesFolder, entry.name),
-          { encoding: 'utf-8' },
+          { encoding: 'utf8' },
         );
         const writeStream = fs.createWriteStream(
           path.join(__dirname, projectFolder, bundleCssFile),
@@ -35,4 +36,5 @@ fs.promises
         });
       }
     });
-  });
+  },
+);
