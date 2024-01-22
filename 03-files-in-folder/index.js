@@ -13,7 +13,8 @@ fs.readdir(
         const fileExtension = path.extname(fileName).replace('.', '');
 
         fs.stat(path.join(__dirname, folder, fileName), (err, stats) => {
-          const fileSize = `${stats.size / 1000}KB`;
+          // const fileSize = `${stats.size / 1024}KB`;
+          const fileSize = `${stats.size}B`;
           const outputStr = `${fileName} - ${fileExtension} - ${fileSize}`;
 
           console.log(outputStr);
