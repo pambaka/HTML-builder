@@ -9,10 +9,11 @@ fs.readdir(
   (err, entries) => {
     entries.forEach((entry) => {
       if (entry.isFile()) {
-        const fileName = entry.name;
-        const fileExtension = path.extname(fileName).replace('.', '');
+        const filePath = path.join(__dirname, folder, entry.name);
+        const fileName = path.parse(filePath).name;
+        const fileExtension = path.extname(entry.name).replace('.', '');
 
-        fs.stat(path.join(__dirname, folder, fileName), (err, stats) => {
+        fs.stat(path.join(__dirname, folder, entry.name), (err, stats) => {
           // const fileSize = `${stats.size / 1024}KB`;
           const fileSize = `${stats.size}B`;
           const outputStr = `${fileName} - ${fileExtension} - ${fileSize}`;
