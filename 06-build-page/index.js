@@ -85,7 +85,7 @@ function createHtmlFile() {
         );
 
         stream.on('data', (htmlData) => {
-          data = data.replace(str, htmlData);
+          data = data.replaceAll(str, htmlData);
 
           if (i === tags.length - 1) {
             writeStream.write(data);
